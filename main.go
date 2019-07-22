@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"regexp"
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -16,6 +17,7 @@ import (
 type ApiCertificateRequest struct {
 	Hosts              []string `json:"hosts"`
 	CertificateRequest string   `json:"certificate_request"`
+	Expiry             string   `json:"expiry"`
 	Profile            string   `json:"profile"`
 	Bundle             bool     `json:"bundle"`
 }
@@ -23,7 +25,7 @@ type ApiCertificateRequest struct {
 func main() {
 	log.SetOutput(os.Stderr)
 
-	cfsslServer, csr, cfsslProfileName, verboseModeEnabled, err := parseArguments()
+	cfsslServer, csr, csrExpiry, cfsslProfileName, verboseModeEnabled, err := parseArguments()
 	if err != nil {
 		log.Fatalf("arg parsing: %v", err)
 	}
@@ -34,7 +36,7 @@ func main() {
 	}
 
 	// send the API call
-	responseBody, err := requestCertificate(cfsslServer, csr, cfsslProfileName)
+	responseBody, err := requestCertificate(cfsslServer, csr, csrExpiry, cfsslProfileName)
 	if err != nil {
 		log.Fatalf("request certificate: %v", err)
 	}
@@ -45,9 +47,10 @@ func main() {
 	os.Exit(0)
 }
 
-func parseArguments() (cfsslServerAddress string, csr string, cfsslProfileName string, verboseModeEnabled bool, e error) {
+func parseArguments() (cfsslServerAddress string, csr string, csrExpiry string, cfsslProfileName string, verboseModeEnabled bool, e error) {
 	cfsslServerAddressFlag := flag.String("cfssl-server", "", "Hostname and port of the cfssl server to request a certificate from")
 	csrPathFlag := flag.String("csr-file", "", "Path to PEM-encoded CSR file to request a signature for.")
+	csrExpiryFlag := flag.String("expiry", "", "Expiration time of the certificate. This should contain a time duration in the form understood by Go's time package[1].")
 	cfsslProfileNameFlag := flag.String("cfssl-profile", "", "Name of the cfssl profile the CA server should use when signing the certificate")
 	verboseModeEnabledFlag := flag.Bool("verbose", false, "Enable verbose output?")
 
@@ -67,17 +70,27 @@ func parseArguments() (cfsslServerAddress string, csr string, cfsslProfileName s
 		err = errors.Wrap(err, "reading csr file")
 	}
 
-	return *cfsslServerAddressFlag, string(csrBytes), *cfsslProfileNameFlag, *verboseModeEnabledFlag, err
+	return *cfsslServerAddressFlag, string(csrBytes), *csrExpiryFlag, *cfsslProfileNameFlag, *verboseModeEnabledFlag, err
 }
 
 // requestCertificate attempts to make an HTTP API call to the cfssl server and
 // returns the body of the response.
-func requestCertificate(cfsslServer string, csr string, cfsslProfileName string) ([]byte, error) {
+func requestCertificate(cfsslServer string, csr string, csrExpiry string, cfsslProfileName string) ([]byte, error) {
 	request := ApiCertificateRequest{
 		Hosts:              nil,
 		CertificateRequest: csr,
+		Expiry:				csrExpiry,
 		Profile:            cfsslProfileName,
 		Bundle:             true,
+	}
+	reExpiry := regexp.MustCompile(`^([1-9]{1}[0-9]*)h$`)
+
+	if csrExpiry != "" {
+		statusRe := reExpiry.MatchString(csrExpiry)
+		if !statusRe {
+			err := fmt.Errorf("Expiry has the wrong format - It should contain a time duration in the form understood by Go's time package")
+			return nil, errors.Wrap(err, "expiry format")
+		}
 	}
 
 	encodedJsonRequest, err := json.Marshal(request)
@@ -109,3 +122,4 @@ func requestCertificate(cfsslServer string, csr string, cfsslProfileName string)
 	}
 	return body, nil
 }
+
