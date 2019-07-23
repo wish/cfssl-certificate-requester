@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"regexp"
+	"time"
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -83,11 +83,10 @@ func requestCertificate(cfsslServer string, csr string, csrExpiry string, cfsslP
 		Profile:            cfsslProfileName,
 		Bundle:             true,
 	}
-	reExpiry := regexp.MustCompile(`^([1-9]{1}[0-9]*)h$`)
 
 	if csrExpiry != "" {
-		statusRe := reExpiry.MatchString(csrExpiry)
-		if !statusRe {
+		_, err := time.ParseDuration(csrExpiry)
+		if err != nil {
 			err := fmt.Errorf("Expiry has the wrong format - It should contain a time duration in the form understood by Go's time package")
 			return nil, errors.Wrap(err, "expiry format")
 		}
