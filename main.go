@@ -79,7 +79,7 @@ func requestCertificate(cfsslServer string, csr string, csrExpiry string, cfsslP
 	request := ApiCertificateRequest{
 		Hosts:              nil,
 		CertificateRequest: csr,
-		Expiry:				csrExpiry,
+		Expiry:             csrExpiry,
 		Profile:            cfsslProfileName,
 		Bundle:             true,
 	}
