@@ -5,9 +5,8 @@ A self-contained tool for getting signed certificates and their bundles from our
 ## How to build this
 
 ```bash
-$ git clone git@github.com:wish/cfssl-certificate-requester.git $GOPATH/src/github.com/wish/cfssl-certificate-requester
-$ cd $GOPATH/src/github.com/wish/cfssl-certificate-requester
-$ dep ensure
+$ git clone git@github.com:wish/cfssl-certificate-requester.git
+$ cd cfssl-certificate-requester
 $ go install github.com/wish/cfssl-certificate-requester
 ```
 
