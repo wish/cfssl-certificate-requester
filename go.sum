@@ -1,0 +1,8 @@
+github.com/pkg/errors v0.8.0 h1:WdK/asTD0HN+q6hsWO3/vpuAkAr+tw6aNJNDFFf0+qw=
+github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
+github.com/sirupsen/logrus v1.0.4 h1:gzbtLsZC3Ic5PptoRG+kQj4L60qjK7H7XszrU163JNQ=
+github.com/sirupsen/logrus v1.0.4/go.mod h1:pMByvHTf9Beacp5x1UXfOR9xyW/9antXMhjMPG0dEzc=
+golang.org/x/crypto v0.0.0-20180119165957-a66000089151 h1:du7dTgoJooIwkyksVuOCfUbQDgZE9oIUdVk/v/tqou4=
+golang.org/x/crypto v0.0.0-20180119165957-a66000089151/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
+golang.org/x/sys v0.0.0-20180117170059-2c42eef0765b h1:mxo/dXmtEd5rXc/ZzMKg0qDhMT+51+LvV65S9dP6nh4=
+golang.org/x/sys v0.0.0-20180117170059-2c42eef0765b/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=

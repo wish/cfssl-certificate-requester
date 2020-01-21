@@ -19,13 +19,14 @@ type ApiCertificateRequest struct {
 	CertificateRequest string   `json:"certificate_request"`
 	Expiry             string   `json:"expiry"`
 	Profile            string   `json:"profile"`
+	Label              string   `json:"label"`
 	Bundle             bool     `json:"bundle"`
 }
 
 func main() {
 	log.SetOutput(os.Stderr)
 
-	cfsslServer, csr, csrExpiry, cfsslProfileName, verboseModeEnabled, err := parseArguments()
+	cfsslServer, csr, csrExpiry, cfsslProfileName, cfsslLabelName, verboseModeEnabled, err := parseArguments()
 	if err != nil {
 		log.Fatalf("arg parsing: %v", err)
 	}
@@ -36,7 +37,7 @@ func main() {
 	}
 
 	// send the API call
-	responseBody, err := requestCertificate(cfsslServer, csr, csrExpiry, cfsslProfileName)
+	responseBody, err := requestCertificate(cfsslServer, csr, csrExpiry, cfsslProfileName, cfsslLabelName)
 	if err != nil {
 		log.Fatalf("request certificate: %v", err)
 	}
@@ -47,11 +48,12 @@ func main() {
 	os.Exit(0)
 }
 
-func parseArguments() (cfsslServerAddress string, csr string, csrExpiry string, cfsslProfileName string, verboseModeEnabled bool, e error) {
+func parseArguments() (cfsslServerAddress string, csr string, csrExpiry string, cfsslProfileName string, cfsslLabelName string, verboseModeEnabled bool, e error) {
 	cfsslServerAddressFlag := flag.String("cfssl-server", "", "Hostname and port of the cfssl server to request a certificate from")
 	csrPathFlag := flag.String("csr-file", "", "Path to PEM-encoded CSR file to request a signature for.")
 	csrExpiryFlag := flag.String("expiry", "", "Expiration time of the certificate. This should contain a time duration in the form understood by Go's time package[1].")
 	cfsslProfileNameFlag := flag.String("cfssl-profile", "", "Name of the cfssl profile the CA server should use when signing the certificate")
+	cfsslLabelNameFlag := flag.String("cfssl-label", "", "Name of the cfssl label the CA server should use when signing the certificate")
 	verboseModeEnabledFlag := flag.Bool("verbose", false, "Enable verbose output?")
 
 	// print program description if no arguments are given
@@ -70,17 +72,18 @@ func parseArguments() (cfsslServerAddress string, csr string, csrExpiry string, 
 		err = errors.Wrap(err, "reading csr file")
 	}
 
-	return *cfsslServerAddressFlag, string(csrBytes), *csrExpiryFlag, *cfsslProfileNameFlag, *verboseModeEnabledFlag, err
+	return *cfsslServerAddressFlag, string(csrBytes), *csrExpiryFlag, *cfsslProfileNameFlag, *cfsslLabelNameFlag, *verboseModeEnabledFlag, err
 }
 
 // requestCertificate attempts to make an HTTP API call to the cfssl server and
 // returns the body of the response.
-func requestCertificate(cfsslServer string, csr string, csrExpiry string, cfsslProfileName string) ([]byte, error) {
+func requestCertificate(cfsslServer string, csr string, csrExpiry string, cfsslProfileName string, cfsslLabelName string) ([]byte, error) {
 	request := ApiCertificateRequest{
 		Hosts:              nil,
 		CertificateRequest: csr,
 		Expiry:             csrExpiry,
 		Profile:            cfsslProfileName,
+		Label:              cfsslLabelName,
 		Bundle:             true,
 	}
 
@@ -121,4 +124,3 @@ func requestCertificate(cfsslServer string, csr string, csrExpiry string, cfsslP
 	}
 	return body, nil
 }
-
